@@ -17,7 +17,6 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
 import os
-import netrc
 import errno
 import codecs
 from sys import exc_info
@@ -25,7 +24,7 @@ from threading import Event
 
 import six
 
-from offlineimap import folder, imaputil, imapserver, OfflineImapError
+from offlineimap import folder, imaputil, imapserver, OfflineImapError, netrc
 from offlineimap.repository.Base import BaseRepository
 from offlineimap.threadutil import ExitNotifyThread
 from offlineimap.utils.distro import get_os_sslcertfile, get_os_sslcertfile_searchpath
@@ -194,7 +193,9 @@ class IMAPRepository(BaseRepository):
                 return user
 
         try:
-            netrcentry = netrc.netrc().authenticators(self.gethost())
+            netrcentry = netrc.netrc().authenticators(
+                self.gethost(),
+                self.getuser())
         except IOError as inst:
             if inst.errno != errno.ENOENT:
                 raise
@@ -203,7 +204,9 @@ class IMAPRepository(BaseRepository):
                 return netrcentry[0]
 
         try:
-            netrcentry = netrc.netrc('/etc/netrc').authenticators(self.gethost())
+            netrcentry = netrc.netrc('/etc/netrc').authenticators(
+                self.gethost(),
+                self.getuser())
         except IOError as inst:
             if inst.errno not in (errno.ENOENT, errno.EACCES):
                 raise
@@ -405,7 +408,9 @@ class IMAPRepository(BaseRepository):
             return password.encode('UTF-8')
         # 4. Read password from ~/.netrc.
         try:
-            netrcentry = netrc.netrc().authenticators(self.gethost())
+            netrcentry = netrc.netrc().authenticators(
+                self.gethost(),
+                self.getuser())
         except IOError as inst:
             if inst.errno != errno.ENOENT:
                 raise
@@ -416,7 +421,9 @@ class IMAPRepository(BaseRepository):
                     return netrcentry[2]
         # 5. Read password from /etc/netrc.
         try:
-            netrcentry = netrc.netrc('/etc/netrc').authenticators(self.gethost())
+            netrcentry = netrc.netrc('/etc/netrc').authenticators(
+                self.gethost(),
+                self.getuser())
         except IOError as inst:
             if inst.errno not in (errno.ENOENT, errno.EACCES):
                 raise
